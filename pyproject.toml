@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "rich-theme-manager"
+version = "0.1.0"
+description = "Manage rich themes for CLI applications"
+authors = ["Rhet Turnbull <rturnbull+git@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/rhettbull/rich-theme-manager"
+repository = "https://github.com/rhettbull/rich-theme-manager"
+keywords = ["rich", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: IPython",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+
+include = [
+    "LICENSE",
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+rich = "^11.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[tool.poetry.scripts]
+rich_theme_manager = 'rich_theme_manager:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
