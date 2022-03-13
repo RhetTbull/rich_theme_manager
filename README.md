@@ -48,7 +48,8 @@ THEMES = [
 if __name__ == "__main__":
     theme_manager = ThemeManager(themes=THEMES)
     theme_manager.list_themes(show_path=False)
-    theme_manager.preview_theme(THEMES[0], show_path=False)
+    dark = theme_manager.get("dark")
+    theme_manager.preview_theme(dark, show_path=False)
     console = Console(theme=THEMES[0])
     console.print("[error]Oh No![/error]")
 ```
