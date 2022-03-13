@@ -1,10 +1,9 @@
-"""ThemeData class for use by rich_theme_manager.py"""
+"""Managed Theme class for use with ThemeManager; subclass of rich.theme.Theme"""
 
 import configparser
-from dataclasses import dataclass
 from io import StringIO
 from os.path import exists
-from typing import IO, Dict, List, Mapping, Optional
+from typing import IO, Dict, List, Mapping, Optional, cast
 
 import rich.theme
 from rich.style import Style, StyleType
@@ -20,12 +19,12 @@ class Theme(rich.theme.Theme):
         tags: Optional[List[str]] = None,
         path: Optional[str] = None,
     ):
-        self._rtm_name = name
-        self._rtm_description = description or ""
-        self._rtm_styles = list(styles.keys() if styles else [])
-        self._rtm_inherit = inherit
-        self._rtm_tags = tags or []
-        self._rtm_path = path
+        self._rtm_name: str = name
+        self._rtm_description: str = description or ""
+        self._rtm_styles: List[str] = list(styles.keys() if styles else [])
+        self._rtm_inherit: bool = inherit
+        self._rtm_tags: List[str] = tags or []
+        self._rtm_path: Optional[str] = path
         super().__init__(styles=styles, inherit=inherit)
 
     @property
@@ -59,7 +58,7 @@ class Theme(rich.theme.Theme):
     @property
     def config(self) -> str:
         """Get contents of a config file for this theme."""
-        metadata = {
+        metadata: Dict = {
             "name": self.name,
             "description": self.description,
             "tags": ", ".join(self.tags) if self.tags else "",
@@ -72,7 +71,7 @@ class Theme(rich.theme.Theme):
         strio = StringIO()
         config.write(strio)
 
-        styles = "[styles]\n" + "\n".join(
+        styles: str = "[styles]\n" + "\n".join(
             f"{name} = {style}"
             for name, style in sorted(self.styles.items())
             if name in self.style_names
@@ -99,7 +98,9 @@ class Theme(rich.theme.Theme):
             raise ValueError(f"No path for theme {self.name}")
         return self.read(self.path)
 
-    def __eq__(self, other: "Theme") -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Theme):
+            return NotImplemented
         return (
             self.name == other.name
             and self.description == other.description
@@ -122,10 +123,14 @@ class Theme(rich.theme.Theme):
         """
         config = configparser.ConfigParser()
         config.read_file(config_file, source=source)
-        styles = {name: Style.parse(value) for name, value in config.items("styles")}
-        metadata = dict(config.items("metadata"))
-        inherit = inherit or metadata.get("inherit")
-        tags = metadata.get("tags").split(",") if metadata.get("tags") else []
+        styles: Dict = {
+            name: Style.parse(value) for name, value in config.items("styles")
+        }
+        metadata: Dict = dict(config.items("metadata"))
+        inherit = inherit or metadata.get("inherit", False)
+        tags: List[str] = (
+            metadata.get("tags", "").split(",") if metadata.get("tags") else []
+        )
         return Theme(
             name=metadata["name"],
             description=metadata.get("description") or "",

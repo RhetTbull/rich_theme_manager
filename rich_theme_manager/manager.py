@@ -1,9 +1,9 @@
-"""Manage rich themes"""
+"""Manage rich themes: implements ThemeManager class"""
 
 
 import pathlib
-from typing import Callable, List, Optional
 from os.path import exists
+from typing import Dict, List, Mapping, Optional
 
 from rich.color import Color
 from rich.console import Console
@@ -23,11 +23,13 @@ class ThemeManager:
         self,
         theme_dir: Optional[str] = None,
         themes: Optional[List[Theme]] = None,
-        default: Optional[Callable] = None,
     ):
-        self._theme_dir = pathlib.Path(theme_dir) if theme_dir else None
-        self._themes = {theme.name: theme for theme in themes} if themes else {}
-        self._default = default
+        self._theme_dir: Optional[pathlib.Path] = (
+            pathlib.Path(theme_dir) if theme_dir else None
+        )
+        self._themes: Dict[str, Theme] = (
+            {theme.name: theme for theme in themes} if themes else {}
+        )
 
         if self._theme_dir is not None:
             for theme in self.themes:
@@ -57,6 +59,8 @@ class ThemeManager:
 
     def load_themes(self) -> None:
         """Load themes"""
+        if self._theme_dir is None:
+            raise ValueError("Theme directory not set")
         for path in self._theme_dir.glob("*.theme"):
             theme = Theme.read(str(path))
             self._themes[theme.name] = theme
@@ -64,6 +68,8 @@ class ThemeManager:
     def write_themes(self, overwrite=False) -> None:
         """Write themes"""
         for theme in self.themes:
+            if not theme.path:
+                raise ValueError(f"Theme {theme.name} has no path")
             if not exists(theme.path) or overwrite:
                 theme.save()
 
@@ -71,7 +77,7 @@ class ThemeManager:
         self, theme: Theme, sample_text: Optional[str] = None, show_path: bool = True
     ) -> None:
         """Preview a theme to the console"""
-        title = f"Theme: {theme.name}"
+        title: str = f"Theme: {theme.name}"
         if show_path:
             title += f" - {theme.path}"
         table = Table(
@@ -153,7 +159,7 @@ class ThemeManager:
 
     def list_themes(
         self, show_path: bool = True, theme_names: Optional[List[str]] = None
-    ) -> List[Theme]:
+    ) -> None:
         """List themes"""
         table = Table(show_header=True, show_lines=False, box=None)
         table.add_column("Theme")
