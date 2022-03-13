@@ -74,11 +74,11 @@ optional arguments:
 
 `python -m rich_theme_manager --list`:
 
-![Example --list output](images/list.png)
+![Example --list output](https://github.com/RhetTbull/rich_theme_manager/blob/main/images/list.png)
 
 `python -m rich_theme_manager --preview dark`:
 
-![Example --preview output](images/preview_dark.png)
+![Example --preview output](https://github.com/RhetTbull/rich_theme_manager/blob/main/images/preview_dark.png)
 
 
 ## Documentation
