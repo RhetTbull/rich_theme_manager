@@ -53,6 +53,8 @@ if __name__ == "__main__":
     console.print("[error]Oh No![/error]")
 ```
 
+![Example output](https://github.com/RhetTbull/rich_theme_manager/blob/main/images/example1.png)
+
 ## Example app
 
 A simple example app that demonstrates the ThemeManager class comes with rich_theme_manager in `__main__.py`:
