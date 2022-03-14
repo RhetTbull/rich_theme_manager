@@ -33,6 +33,7 @@ rich = ">=11.0"
 [tool.poetry.dev-dependencies]
 pytest = "^7.1"
 pytest-cov = "^3.0"
+flake8 = "^4.0.1"
 
 [tool.poetry.scripts]
 rich_theme_manager = 'rich_theme_manager:main'
