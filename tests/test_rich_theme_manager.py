@@ -173,6 +173,9 @@ def test_theme_manager_load_themes_2(themes):
     assert tm.get("dark") is not None
 
 
+@pytest.mark.skip(
+    reason="capsys not compatible with rich.console.Console, see https://github.com/Textualize/rich/issues/317"
+)
 def test_theme_manager_preview(themes, capsys):
     """Test ThemeManager.preview_theme"""
     tm = ThemeManager(themes=themes)
@@ -188,6 +191,9 @@ def test_theme_manager_preview(themes, capsys):
     assert "Join the dark side" in captured.out
 
 
+@pytest.mark.skip(
+    reason="capsys not compatible with rich.console.Console, see https://github.com/Textualize/rich/issues/317"
+)
 def test_theme_manager_list_themes(themes, capsys):
     """Test ThemeManager.list_themes"""
     tm = ThemeManager(themes=themes)
