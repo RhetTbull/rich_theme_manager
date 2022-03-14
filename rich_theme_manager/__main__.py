@@ -1,4 +1,4 @@
-"""Example CLI usage of rich_theme_manager.  
+"""Example CLI usage of rich_theme_manager.
 Uses argparse for no dependencies but should be easily adapatable to click or typer
 """
 

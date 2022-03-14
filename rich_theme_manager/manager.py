@@ -4,7 +4,7 @@
 import pathlib
 from os import unlink
 from os.path import exists
-from typing import Dict, List, Mapping, Optional
+from typing import Dict, List, Optional
 
 from rich.color import Color
 from rich.console import Console

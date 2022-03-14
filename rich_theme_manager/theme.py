@@ -3,7 +3,7 @@
 import configparser
 from io import StringIO
 from os.path import exists
-from typing import IO, Dict, List, Mapping, Optional, cast
+from typing import IO, Dict, List, Mapping, Optional
 
 import rich.theme
 from rich.style import Style, StyleType
