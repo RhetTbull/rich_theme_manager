@@ -44,6 +44,8 @@ class ThemeManager:
 
     def add(self, theme: Theme):
         """Add theme"""
+        if self._theme_dir and not theme.path:
+            theme.path = str(self._theme_dir / f"{theme.name}.theme")
         self._themes[theme.name] = theme
 
     def remove(self, theme: Theme):
@@ -71,7 +73,7 @@ class ThemeManager:
             if not theme.path:
                 raise ValueError(f"Theme {theme.name} has no path")
             if not exists(theme.path) or overwrite:
-                theme.save()
+                theme.save(overwrite=overwrite)
 
     def preview_theme(
         self, theme: Theme, sample_text: Optional[str] = None, show_path: bool = True
