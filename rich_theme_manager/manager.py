@@ -2,6 +2,7 @@
 
 
 import pathlib
+from os import unlink
 from os.path import exists
 from typing import Dict, List, Mapping, Optional
 
@@ -42,14 +43,18 @@ class ThemeManager:
         """Themes"""
         return list(self._themes.values())
 
-    def add(self, theme: Theme):
-        """Add theme"""
+    def add(self, theme: Theme, overwrite=False) -> None:
+        """Add theme; if theme file doesn't exist, it will be written"""
         if self._theme_dir and not theme.path:
             theme.path = str(self._theme_dir / f"{theme.name}.theme")
+        if self._theme_dir and (not exists(theme.path) or overwrite):
+            theme.save(overwrite=overwrite)
         self._themes[theme.name] = theme
 
-    def remove(self, theme: Theme):
-        """Remove theme"""
+    def remove(self, theme: Theme) -> None:
+        """Remove theme; if theme file exists, it will be deleted"""
+        if theme.path and exists(theme.path):
+            unlink(theme.path)
         del self._themes[theme.name]
 
     def get(self, theme_name: Optional[str] = None) -> Theme:
@@ -59,13 +64,20 @@ class ThemeManager:
                 return theme
         raise ValueError(f"Theme {theme_name} not found")
 
-    def load_themes(self) -> None:
+    def load_themes(self, theme_dir=None) -> None:
         """Load themes"""
-        if self._theme_dir is None:
-            raise ValueError("Theme directory not set")
-        for path in self._theme_dir.glob("*.theme"):
-            theme = Theme.read(str(path))
-            self._themes[theme.name] = theme
+        if theme_dir:
+            # load themes from user specified theme directory instead of self._theme_dir
+            theme_dir = pathlib.Path(theme_dir)
+            for path in theme_dir.glob("*.theme"):
+                theme = Theme.read(str(path))
+                self._themes[theme.name] = theme
+        elif self._theme_dir:
+            for path in self._theme_dir.glob("*.theme"):
+                theme = Theme.read(str(path))
+                self._themes[theme.name] = theme
+        else:
+            raise ValueError("No theme directory specified")
 
     def write_themes(self, overwrite=False) -> None:
         """Write themes"""

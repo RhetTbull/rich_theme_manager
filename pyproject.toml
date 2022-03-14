@@ -31,7 +31,8 @@ python = ">=3.8,<4.0.0"
 rich = ">=11.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1"
+pytest-cov = "^3.0"
 
 [tool.poetry.scripts]
 rich_theme_manager = 'rich_theme_manager:main'

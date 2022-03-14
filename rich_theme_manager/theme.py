@@ -92,11 +92,19 @@ class Theme(rich.theme.Theme):
             raise FileExistsError(f"Theme {self.name} already exists at {self.path}")
         self.to_file(self.path)
 
-    def load(self) -> "Theme":
-        """Load this theme from its path returning a new Theme object."""
+    def load(self) -> None:
+        """Load this theme from its path overwriting any theme data in memory."""
         if not self.path:
-            raise ValueError(f"No path for theme {self.name}")
-        return self.read(self.path)
+            raise FileNotFoundError(f"No path for theme {self.name}")
+        if not exists(self.path):
+            raise FileNotFoundError(f"Theme {self.name} does not exist at {self.path}")
+        new_theme = Theme.read(self.path)
+        self._rtm_name = new_theme.name
+        self._rtm_description = new_theme.description
+        self._rtm_styles = new_theme.style_names.copy()
+        self._rtm_inherit = new_theme.inherit
+        self._rtm_tags = new_theme.tags.copy()
+        self._rtm_path = new_theme.path
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Theme):
