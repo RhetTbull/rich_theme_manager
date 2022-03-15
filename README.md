@@ -173,6 +173,50 @@ Class Methods:
 * `Theme.from_file(config_file: IO[str], source: Optional[str] = None, inherit: bool = True)` -> `Theme`: Load a theme from a text mode configuration file (in [configparser](https://docs.python.org/3/library/configparser.html) INI format).
 * `Theme.read(path: str, inherit: bool = True) -> Theme`: Load a theme from disk (from `path`)
 
+The `.theme` INI file format looks like this:
+
+```ini
+[metadata]
+name = dark
+description = Dark mode theme
+tags = dark
+inherit = True
+
+[styles]
+danger = bold red
+info = dim cyan
+warning = bold magenta
+```
+
+Here's an real world example of a theme INI file from one of my [apps](https://github.com/RhetTbull/osxphotos):
+
+```INI
+[metadata]
+name = dark
+description = Dark mode theme
+tags = dark
+inherit = True
+
+[styles]
+bar.back = rgb(68,71,90)
+bar.complete = rgb(249,38,114)
+bar.finished = rgb(80,250,123)
+bar.pulse = rgb(98,114,164)
+color = rgb(248,248,242)
+count = rgb(139,233,253)
+error = bold rgb(255,85,85)
+filename = bold rgb(189,147,249)
+filepath = bold rgb(80,250,123)
+highlight = bold #000000 on #d73a49
+num = bold rgb(139,233,253)
+progress.elapsed = rgb(139,233,253)
+progress.percentage = rgb(255,121,198)
+progress.remaining = rgb(139,233,253)
+time = bold rgb(139,233,253)
+uuid = rgb(255,184,108)
+warning = bold rgb(241,250,140)
+```
+
 ### ThemeManager class
 
 ```python
