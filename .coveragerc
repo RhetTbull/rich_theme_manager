@@ -1,0 +1,3 @@
+[run]
+omit =
+    rich_theme_manager/__main__.py
