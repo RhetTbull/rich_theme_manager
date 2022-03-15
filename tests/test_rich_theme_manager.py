@@ -2,6 +2,7 @@
 
 import configparser
 import os
+import sys
 import tempfile
 from textwrap import dedent
 
@@ -173,8 +174,9 @@ def test_theme_manager_load_themes_2(themes):
     assert tm.get("dark") is not None
 
 
-@pytest.mark.skip(
-    reason="capsys not compatible with rich.console.Console, see https://github.com/Textualize/rich/issues/317"
+@pytest.mark.skipif(
+    "-s" not in sys.argv,
+    reason="capsys not compatible with rich.console.Console unless pytest run with -s, see https://github.com/Textualize/rich/issues/317",
 )
 def test_theme_manager_preview(themes, capsys):
     """Test ThemeManager.preview_theme"""
@@ -191,8 +193,9 @@ def test_theme_manager_preview(themes, capsys):
     assert "Join the dark side" in captured.out
 
 
-@pytest.mark.skip(
-    reason="capsys not compatible with rich.console.Console, see https://github.com/Textualize/rich/issues/317"
+@pytest.mark.skipif(
+    "-s" not in sys.argv,
+    reason="capsys not compatible with rich.console.Console unless pytest run with -s, see https://github.com/Textualize/rich/issues/317",
 )
 def test_theme_manager_list_themes(themes, capsys):
     """Test ThemeManager.list_themes"""

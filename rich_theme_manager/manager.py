@@ -57,7 +57,7 @@ class ThemeManager:
             unlink(theme.path)
         del self._themes[theme.name]
 
-    def get(self, theme_name: Optional[str] = None) -> Theme:
+    def get(self, theme_name: str) -> Theme:
         """Get theme by name"""
         for theme in self.themes:
             if theme.name == theme_name:

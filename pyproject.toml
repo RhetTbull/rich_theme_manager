@@ -5,8 +5,8 @@ description = "Manage rich themes for CLI applications"
 authors = ["Rhet Turnbull <rturnbull+git@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/rhettbull/rich-theme-manager"
-repository = "https://github.com/rhettbull/rich-theme-manager"
+homepage = "https://github.com/RhetTbull/rich_theme_manager"
+repository = "https://github.com/RhetTbull/rich_theme_manager"
 keywords = ["rich", "cli"]
 classifiers = [
     "Development Status :: 3 - Alpha",
