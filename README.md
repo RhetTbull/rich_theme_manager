@@ -133,7 +133,8 @@ optional arguments:
 `rich_theme_manager.Theme` is a subclass of `rich.theme.Theme` and provides additional functionality for managing themes.
 
 ```python
-    Theme(name: str,
+    Theme(
+          name: str,
           description: Optional[str] = None,
           styles: Optional[Mapping[str, StyleType]] = None,
           inherit: bool = True,
