@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rich-theme-manager"
-version = "0.4.0"
+version = "0.5.0"
 description = "Manage rich themes for CLI applications"
 authors = ["Rhet Turnbull <rturnbull+git@gmail.com>"]
 license = "MIT"
