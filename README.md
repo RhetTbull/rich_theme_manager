@@ -252,6 +252,23 @@ Methods:
 
 ![ThemeManager list example](https://github.com/RhetTbull/rich_theme_manager/raw/main/images/theme_manager_list.png)
 
+## Test Coverage
+
+100% coverage.
+
+```text
+Name                               Stmts   Miss  Cover
+------------------------------------------------------
+rich_theme_manager/__init__.py         5      0   100%
+rich_theme_manager/manager.py        114      0   100%
+rich_theme_manager/theme.py           85      0   100%
+tests/__init__.py                      0      0   100%
+tests/conftest.py                      7      0   100%
+tests/test_rich_theme_manager.py     219      0   100%
+------------------------------------------------------
+TOTAL                                430      0   100%
+```
+
 ## License
 
 MIT License

@@ -47,7 +47,7 @@ class ThemeManager:
         """Add theme; if theme file doesn't exist, it will be written"""
         if self._theme_dir and not theme.path:
             theme.path = str(self._theme_dir / f"{theme.name}.theme")
-        if self._theme_dir and (not exists(theme.path) or overwrite):
+        if self._theme_dir and overwrite or (theme.path and not exists(theme.path)):
             theme.save(overwrite=overwrite)
         self._themes[theme.name] = theme
 
@@ -64,12 +64,12 @@ class ThemeManager:
                 return theme
         raise ValueError(f"Theme {theme_name} not found")
 
-    def load_themes(self, theme_dir=None) -> None:
+    def load_themes(self, theme_dir: Optional[str] = None) -> None:
         """Load themes"""
         if theme_dir:
             # load themes from user specified theme directory instead of self._theme_dir
-            theme_dir = pathlib.Path(theme_dir)
-            for path in theme_dir.glob("*.theme"):
+            _theme_dir = pathlib.Path(theme_dir)
+            for path in _theme_dir.glob("*.theme"):
                 theme = Theme.read(str(path))
                 self._themes[theme.name] = theme
         elif self._theme_dir:
@@ -79,7 +79,7 @@ class ThemeManager:
         else:
             raise ValueError("No theme directory specified")
 
-    def write_themes(self, overwrite=False) -> None:
+    def write_themes(self, overwrite: bool = False) -> None:
         """Write themes"""
         for theme in self.themes:
             if not theme.path:

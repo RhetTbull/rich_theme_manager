@@ -1,5 +1,4 @@
 """Tests for rich_theme_manager"""
-
 import configparser
 import os
 import sys
@@ -127,6 +126,35 @@ def test_theme_manager_write_themes(themes):
     assert dark3.description == "Dark is the new black"
 
 
+def test_theme_manager_write_themes_exception(themes):
+    """Test that ThemeManager.write_themes raises exception if Theme.path not set"""
+
+    theme_dir = tempfile.TemporaryDirectory()
+    tm = ThemeManager(theme_dir=theme_dir.name, themes=themes)
+    for theme in tm.themes:
+        assert os.path.exists(theme.path)
+
+    # change the theme and make sure the file is not updated
+    tm.add(
+        Theme(
+            name="dark",
+            description="Dark is the new black",
+            styles={"test": Style(color="red")},
+        )
+    )
+    tm.add(
+        Theme(
+            name="test",
+            description="Test theme",
+            styles={"test": Style(color="blue")},
+        )
+    )
+    tm._themes["test"].path = None
+
+    with pytest.raises(ValueError):
+        tm.write_themes()
+
+
 def test_theme_manager_get(themes):
     """Test ThemeManager.get"""
 
@@ -197,6 +225,28 @@ def test_theme_manager_preview(themes, capsys):
     "-s" not in sys.argv,
     reason="capsys not compatible with rich.console.Console unless pytest run with -s, see https://github.com/Textualize/rich/issues/317",
 )
+def test_theme_manager_preview_no_style(capsys):
+    """Test ThemeManager.preview_theme works even if theme style not set"""
+
+    tm = ThemeManager()
+    tm.add(
+        Theme(
+            name="test",
+            description="Test theme",
+            styles={"test": Style(color="blue")},
+        )
+    )
+    theme = tm.get("test")
+    theme._rtm_styles = ["foo"]
+    tm.preview_theme(theme, sample_text="Join the dark side")
+    captured = capsys.readouterr()
+    assert "Theme: test" in captured.out
+
+
+@pytest.mark.skipif(
+    "-s" not in sys.argv,
+    reason="capsys not compatible with rich.console.Console unless pytest run with -s, see https://github.com/Textualize/rich/issues/317",
+)
 def test_theme_manager_list_themes(themes, capsys):
     """Test ThemeManager.list_themes"""
     tm = ThemeManager(themes=themes)
@@ -205,6 +255,10 @@ def test_theme_manager_list_themes(themes, capsys):
     assert "dark" in captured.out
     assert "light" in captured.out
     assert "Monochromatic theme" in captured.out
+
+    tm.list_themes(theme_names=["foo"])
+    captured = capsys.readouterr()
+    assert "dark" not in captured.out
 
 
 def test_theme_properties():
@@ -262,6 +316,22 @@ def test_theme_save():
     assert parser["metadata"]["description"] == "New description"
 
 
+def test_theme_save_no_path():
+    """Test Theme.save when there's no path (raises exception)"""
+
+    tm = ThemeManager()
+    tm.add(
+        Theme(
+            name="test", description="Test theme", styles={"test": Style(color="red")}
+        )
+    )
+    theme = tm.get("test")
+
+    # should raise error
+    with pytest.raises(ValueError):
+        theme.save()
+
+
 def test_theme_load(themes):
     """Test Theme.load"""
 
@@ -288,6 +358,38 @@ def test_theme_load(themes):
     theme.load()
     assert theme.name == "test2"
     assert theme.description == "Test 2 theme"
+
+
+def test_theme_load_no_path(themes):
+    """Test Theme.load when theme has no path"""
+
+    theme = Theme(
+        name="test",
+        description="Test theme",
+        styles={"test": Style(color="red")},
+    )
+
+    with pytest.raises(FileNotFoundError):
+        theme.load()
+
+
+def test_theme_load_bad_path(themes):
+    """Test Theme.load when theme path doesn't exist"""
+
+    with tempfile.TemporaryDirectory() as theme_dir:
+        pass
+
+    # theme_dir won't exist outside the context manager
+
+    theme = Theme(
+        name="test",
+        description="Test theme",
+        styles={"test": Style(color="red")},
+        path=theme_dir,
+    )
+
+    with pytest.raises(FileNotFoundError):
+        theme.load()
 
 
 def test_theme_config(themes):
@@ -347,3 +449,5 @@ def test_theme_eq():
         name="test", description="Test theme", styles={"test": Style(color="blue")}
     )
     assert theme1 != theme3
+
+    assert theme1 != "foo"
