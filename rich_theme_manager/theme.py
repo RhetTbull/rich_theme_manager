@@ -25,6 +25,16 @@ class Theme(rich.theme.Theme):
         tags: Optional[List[str]] = None,
         path: Optional[str] = None,
     ):
+        """Create a Theme instance
+
+        Args:
+            name (str): Name of the theme
+            description (Optional[str]): Description of the theme
+            styles (Optional[Mapping[str, StyleType]]): Styles to use in the theme
+            inherit (bool): Whether or not to inherit from the default theme
+            tags (Optional[List[str]]): Tags to use for filtering themes
+            path (Optional[str]): Path to save the theme to
+        """
         self._rtm_name: str = name
         self._rtm_description: str = description or ""
         self._rtm_styles: List[str] = list(styles.keys() if styles else [])

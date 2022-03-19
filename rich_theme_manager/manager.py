@@ -9,9 +9,7 @@ from typing import Dict, List, Optional
 from rich.console import Console
 from rich.table import Table
 
-from .theme import Theme
-
-SAMPLE_TEXT = "The quick brown fox..."
+from .theme import SAMPLE_TEXT, Theme
 
 
 class ThemeManager:
@@ -22,6 +20,12 @@ class ThemeManager:
         theme_dir: Optional[str] = None,
         themes: Optional[List[Theme]] = None,
     ):
+        """Create ThemeManager instance
+
+        Args:
+            theme_dir (Optional[str]): directory containing themes
+            themes (Optional[List[Theme]]): list of rich_theme_manager.Theme objects
+        """
         self._theme_dir: Optional[pathlib.Path] = (
             pathlib.Path(theme_dir) if theme_dir else None
         )
@@ -85,9 +89,18 @@ class ThemeManager:
                 theme.save(overwrite=overwrite)
 
     def list_themes(
-        self, show_path: bool = True, theme_names: Optional[List[str]] = None
+        self,
+        show_path: bool = True,
+        theme_names: Optional[List[str]] = None,
+        console: Optional[Console] = None,
     ) -> None:
-        """List themes"""
+        """List themes
+
+        Args:
+            show_path (bool): show theme file path
+            theme_names (Optional[List[str]]): list of theme names to show (default is all themes)
+            console: Optional[Console]: rich.console.Console instance to use for printing
+        """
         table = Table(show_header=True, show_lines=False, box=None)
         table.add_column("Theme")
         table.add_column("Description")
@@ -105,15 +118,27 @@ class ThemeManager:
             if show_path:
                 row.append(theme.path or "")
             table.add_row(*row)
-        console = Console()
+        console = console or Console()
         console.print(table)
 
     @classmethod
     def preview_theme(
-        self, theme: Theme, sample_text: Optional[str] = None, show_path: bool = True
+        cls,
+        theme: Theme,
+        sample_text: Optional[str] = None,
+        show_path: bool = True,
+        console: Optional[Console] = None,
     ) -> None:
-        """Preview a theme to the console"""
-        Console().print(
+        """Preview a theme to the console
+
+        Args:
+            theme (Theme): theme to preview
+            sample_text (Optional[str]): sample text to use for preview (default is rich_theme_manager.theme.SAMPLE_TEXT)
+            show_path (bool): show theme file path
+            console: Optional[Console]: rich.console.Console instance to use for printing
+        """
+        console = console or Console()
+        console.print(
             *list(
                 theme._preview(
                     sample_text=sample_text or SAMPLE_TEXT, show_path=show_path

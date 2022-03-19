@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rich-theme-manager"
-version = "0.5.0"
+version = "0.6.0"
 description = "Manage rich themes for CLI applications"
 authors = ["Rhet Turnbull <rturnbull+git@gmail.com>"]
 license = "MIT"
@@ -34,6 +34,7 @@ rich = ">=11.0"
 pytest = "^7.1"
 pytest-cov = "^3.0"
 flake8 = "^4.0.1"
+pytest-mypy = "^0.9.1"
 
 [tool.poetry.scripts]
 rich_theme_manager = 'rich_theme_manager:main'

@@ -223,6 +223,25 @@ def test_theme_manager_preview(themes, capsys):
     assert "Join the dark side" in captured.out
 
 
+def test_theme_manager_preview_console(themes):
+    """Test ThemeManager.preview_theme"""
+    tm = ThemeManager(themes=themes)
+    theme = tm.get("dark")
+    strio = StringIO()
+    console = Console(width=200, file=strio)
+    tm.preview_theme(theme, console=console)
+    captured = strio.getvalue()
+    assert "Theme: dark" in captured
+    assert SAMPLE_TEXT in captured
+
+    strio = StringIO()
+    console = Console(width=200, file=strio)
+    tm.preview_theme(theme, sample_text="Join the dark side", console=console)
+    captured = strio.getvalue()
+    assert "Theme: dark" in captured
+    assert "Join the dark side" in captured
+
+
 @pytest.mark.skipif(
     "-s" not in sys.argv,
     reason="capsys not compatible with rich.console.Console unless pytest run with -s, see https://github.com/Textualize/rich/issues/317",
@@ -261,6 +280,26 @@ def test_theme_manager_list_themes(themes, capsys):
     tm.list_themes(theme_names=["foo"])
     captured = capsys.readouterr()
     assert "dark" not in captured.out
+
+
+def test_theme_manager_list_themes_console(themes):
+    """Test ThemeManager.list_themes with custom Console object"""
+    tm = ThemeManager(themes=themes)
+    from io import StringIO
+
+    strio = StringIO()
+    console = Console(width=100, file=strio)
+    tm.list_themes(console=console)
+    captured = strio.getvalue()
+    assert "dark" in captured
+    assert "light" in captured
+    assert "Monochromatic theme" in captured
+
+    strio = StringIO()
+    console = Console(width=100, file=strio)
+    tm.list_themes(theme_names=["foo"], console=console)
+    captured = strio.getvalue()
+    assert "dark" not in captured
 
 
 def test_theme_properties():
