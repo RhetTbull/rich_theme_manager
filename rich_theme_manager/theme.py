@@ -6,7 +6,13 @@ from os.path import exists
 from typing import IO, Dict, List, Mapping, Optional
 
 import rich.theme
+from rich.color import Color
+from rich.console import Console, ConsoleOptions, RenderResult
 from rich.style import Style, StyleType
+from rich.table import Table, box
+from rich.text import Text
+
+SAMPLE_TEXT = "The quick brown fox..."
 
 
 class Theme(rich.theme.Theme):
@@ -106,6 +112,91 @@ class Theme(rich.theme.Theme):
         self._rtm_tags = new_theme.tags.copy()
         self._rtm_path = new_theme.path
 
+    def _preview(
+        self, sample_text: Optional[str] = None, show_path: bool = True
+    ) -> RenderResult:
+        """Preview a theme for printing to console"""
+        title: str = f"Theme: {self.name}"
+        if show_path and self.path:
+            title += f" - {self.path}"
+
+        table = Table(
+            title=title,
+            title_justify="center",
+            show_header=True,
+            show_lines=True,
+            header_style="bold",
+            box=box.SQUARE,
+        )
+
+        sample_text = sample_text or SAMPLE_TEXT
+
+        for column in [
+            "style",
+            "color",
+            "color",
+            "bgcolor",
+            "bgcolor",
+            "attributes",
+            "example",
+        ]:
+            table.add_column(column)
+
+        for style_name in self.style_names:
+            style = self.styles.get(style_name)
+            if not style:
+                continue
+            color = (style.color.name or style.color.rgb) if style.color else "None"
+            bgcolor = (
+                (style.bgcolor.name or style.bgcolor.rgb) if style.bgcolor else "None"
+            )
+
+            attributes = attribute_str(style)
+
+            table.add_row(
+                style_name,
+                str(color),
+                color_bar(5, style.color) if style.color else " " * 5,
+                str(bgcolor),
+                color_bar(5, style.bgcolor) if style.bgcolor else " " * 5,
+                attributes,
+                Text(sample_text, style=style),
+            )
+
+        yield table
+
+        legend = Table(
+            title="Attributes Legend",
+            title_justify="left",
+            show_header=False,
+            show_lines=False,
+            box=box.SQUARE,
+        )
+        legend.add_row(
+            (
+                f"{_bold('b')}: bold, "
+                f"{_bold('d')}: dim, "
+                f"{_bold('i')}: italic, "
+                f"{_bold('u')}: underline, "
+                f"{_bold('U')}: double underline, "
+                f"{_bold('B')}: blink, "
+                f"{_bold('2')}: blink2"
+            )
+        )
+        legend.add_row(
+            (
+                f"{_bold('r')}: reverse, "
+                f"{_bold('c')}: conceal, "
+                f"{_bold('s')}: strike, "
+                f"{_bold('f')}: frame, "
+                f"{_bold('e')}: encircle, "
+                f"{_bold('o')}: overline, "
+                f"{_bold('L')}: Link"
+            )
+        )
+
+        yield legend
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Theme):
             return NotImplemented
@@ -116,6 +207,11 @@ class Theme(rich.theme.Theme):
             and self.inherit == other.inherit
             and self.tags == other.tags
         )
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        yield from self._preview()
 
     @classmethod
     def from_file(
@@ -159,3 +255,32 @@ class Theme(rich.theme.Theme):
         """
         with open(path, "rt") as config_file:
             return cls.from_file(config_file, source=path, inherit=inherit)
+
+
+def _bold(text: str) -> str:
+    return f"[bold]{text}[/]"
+
+
+def attribute_str(style: Style) -> str:
+    """Return a string representing all attributes of a style"""
+    attributes = "" + (_bold("b") if style.bold else "-")
+    attributes += _bold("d") if style.dim else "-"
+    attributes += _bold("i") if style.italic else "-"
+    attributes += _bold("u") if style.underline else "-"
+    attributes += _bold("U") if style.underline2 else "-"
+    attributes += _bold("B") if style.blink else "-"
+    attributes += _bold("2") if style.blink2 else "-"
+    attributes += _bold("r") if style.reverse else "-"
+    attributes += _bold("c") if style.conceal else "-"
+    attributes += _bold("s") if style.strike else "-"
+    attributes += _bold("f") if style.frame else "-"
+    attributes += _bold("e") if style.encircle else "-"
+    attributes += _bold("o") if style.overline else "-"
+    attributes += _bold("L") if style.link else "-"
+    return attributes
+
+
+def color_bar(length: int, color: Color) -> str:
+    """Create a color bar."""
+    bar = "█" * length
+    return Text(bar, style=Style(color=color))

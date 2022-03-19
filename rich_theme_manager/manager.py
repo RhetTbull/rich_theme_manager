@@ -6,11 +6,8 @@ from os import unlink
 from os.path import exists
 from typing import Dict, List, Optional
 
-from rich.color import Color
 from rich.console import Console
-from rich.style import Style
-from rich.table import Table, box
-from rich.text import Text
+from rich.table import Table
 
 from .theme import Theme
 
@@ -87,90 +84,6 @@ class ThemeManager:
             if not exists(theme.path) or overwrite:
                 theme.save(overwrite=overwrite)
 
-    def preview_theme(
-        self, theme: Theme, sample_text: Optional[str] = None, show_path: bool = True
-    ) -> None:
-        """Preview a theme to the console"""
-        title: str = f"Theme: {theme.name}"
-        if show_path:
-            title += f" - {theme.path}"
-        table = Table(
-            title=title,
-            title_justify="center",
-            show_header=True,
-            show_lines=True,
-            header_style="bold",
-            box=box.SQUARE,
-        )
-
-        sample_text = sample_text or SAMPLE_TEXT
-
-        for column in [
-            "style",
-            "color",
-            "color",
-            "bgcolor",
-            "bgcolor",
-            "attributes",
-            "example",
-        ]:
-            table.add_column(column)
-
-        for style_name in theme.style_names:
-            style = theme.styles.get(style_name)
-            if not style:
-                continue
-            color = (style.color.name or style.color.rgb) if style.color else "None"
-            bgcolor = (
-                (style.bgcolor.name or style.bgcolor.rgb) if style.bgcolor else "None"
-            )
-
-            attributes = attribute_str(style)
-
-            table.add_row(
-                style_name,
-                str(color),
-                color_bar(5, style.color) if style.color else " " * 5,
-                str(bgcolor),
-                color_bar(5, style.bgcolor) if style.bgcolor else " " * 5,
-                attributes,
-                f"[{style_name}]{sample_text}",
-            )
-
-        console = Console(theme=theme)
-        console.print(table)
-
-        legend = Table(
-            title="Attributes Legend",
-            title_justify="left",
-            show_header=False,
-            show_lines=False,
-            box=box.SQUARE,
-        )
-        legend.add_row(
-            (
-                f"{_bold('b')}: bold, "
-                f"{_bold('d')}: dim, "
-                f"{_bold('i')}: italic, "
-                f"{_bold('u')}: underline, "
-                f"{_bold('U')}: double underline, "
-                f"{_bold('B')}: blink, "
-                f"{_bold('2')}: blink2"
-            )
-        )
-        legend.add_row(
-            (
-                f"{_bold('r')}: reverse, "
-                f"{_bold('c')}: conceal, "
-                f"{_bold('s')}: strike, "
-                f"{_bold('f')}: frame, "
-                f"{_bold('e')}: encircle, "
-                f"{_bold('o')}: overline, "
-                f"{_bold('L')}: Link"
-            )
-        )
-        console.print(legend)
-
     def list_themes(
         self, show_path: bool = True, theme_names: Optional[List[str]] = None
     ) -> None:
@@ -195,31 +108,15 @@ class ThemeManager:
         console = Console()
         console.print(table)
 
-
-def _bold(text: str) -> str:
-    return f"[bold]{text}[/]"
-
-
-def attribute_str(style: Style) -> str:
-    """Return a string representing all attributes of a style"""
-    attributes = "" + (_bold("b") if style.bold else "-")
-    attributes += _bold("d") if style.dim else "-"
-    attributes += _bold("i") if style.italic else "-"
-    attributes += _bold("u") if style.underline else "-"
-    attributes += _bold("U") if style.underline2 else "-"
-    attributes += _bold("B") if style.blink else "-"
-    attributes += _bold("2") if style.blink2 else "-"
-    attributes += _bold("r") if style.reverse else "-"
-    attributes += _bold("c") if style.conceal else "-"
-    attributes += _bold("s") if style.strike else "-"
-    attributes += _bold("f") if style.frame else "-"
-    attributes += _bold("e") if style.encircle else "-"
-    attributes += _bold("o") if style.overline else "-"
-    attributes += _bold("L") if style.link else "-"
-    return attributes
-
-
-def color_bar(length: int, color: Color) -> str:
-    """Create a color bar."""
-    bar = "█" * length
-    return Text(bar, style=Style(color=color))
+    @classmethod
+    def preview_theme(
+        self, theme: Theme, sample_text: Optional[str] = None, show_path: bool = True
+    ) -> None:
+        """Preview a theme to the console"""
+        Console().print(
+            *list(
+                theme._preview(
+                    sample_text=sample_text or SAMPLE_TEXT, show_path=show_path
+                )
+            )
+        )

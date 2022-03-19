@@ -217,6 +217,16 @@ uuid = rgb(255,184,108)
 warning = bold rgb(241,250,140)
 ```
 
+`Theme` implements the [rich Console protocol](https://rich.readthedocs.io/en/stable/protocol.html) which means that you use `rich.print()` and `rich.console.Console().print()` to print a theme to the console.  Doing so results in a preview of the theme which visually shows the colors and styles used in the theme.
+
+![Theme preview](https://github.com/RhetTbull/rich_theme_manager/raw/main/images/theme_preview_print.png)
+
+The `Theme` preview will use default sample text for each style. You can change the sample text by setting the `rich_theme_manager.theme.SAMPLE_TEXT` global variable.
+
+![Theme preview with sample text](https://github.com/RhetTbull/rich_theme_manager/raw/main/images/theme_preview_sample_text.png)
+
+`Theme` implements the `__eq__` method so two `Theme` instances can be easily compared for equality. `Theme` instances are considered equal if all properties with exception of `path` are equal.
+
 ### ThemeManager class
 
 ```python
@@ -244,13 +254,16 @@ Methods:
 * `ThemeManager().get(theme_name: str) -> Theme`: Get a theme by name. Raises 'ValueError` if no theme with the given name is found.
 * `ThemeManager().load_themes(theme_dir=None) -> None`: Load themes from `theme_dir` (or `ThemeManager().theme_dir` if not provided).  Any `.theme` files found in `theme_dir` will be loaded and added to the list of managed themes.
 * `ThemeManager().write_themes(overwrite=False) -> None`: Write themes to file (as specified in each `Theme().path` which will be set automatically by `ThemeManager`).  If `overwrite` is True, the theme file will be overwritten if it already exists.
-* `ThemeManager().preview_theme(theme: Theme, sample_text: Optional[str] = None, show_path: bool = True) -> None`: Print a preview of the theme to the console showing the style of each style in the theme.  If `sample_text` is provided, it will be used as the sample text to preview otherwise a default string will be used.  If `show_path` is True, the path to the theme file will be printed.
-
-![ThemeManager preview example](https://github.com/RhetTbull/rich_theme_manager/raw/main/images/theme_manager_preview.png)
 
 * `ThemeManager().list_themes(show_path: bool = True, theme_names: Optional[List[str]] = None) -> None`: Print a list of themes to the console.  If `show_path` is True, the path to the theme file will be printed.  If `theme_names` is provided, only themes with names in the list will be printed.
 
 ![ThemeManager list example](https://github.com/RhetTbull/rich_theme_manager/raw/main/images/theme_manager_list.png)
+
+Class Methods:
+
+* `ThemeManager.preview_theme(theme: Theme, sample_text: Optional[str] = None, show_path: bool = True) -> None`: Print a preview of the theme to the console showing the style of each style in the theme.  If `sample_text` is provided, it will be used as the sample text to preview otherwise a default string will be used.  If `show_path` is True, the path to the theme file will be printed.
+
+![ThemeManager preview example](https://github.com/RhetTbull/rich_theme_manager/raw/main/images/theme_manager_preview.png)
 
 ## Test Coverage
 

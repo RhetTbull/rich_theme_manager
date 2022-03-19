@@ -3,10 +3,12 @@ import configparser
 import os
 import sys
 import tempfile
+from io import StringIO
 from textwrap import dedent
 
 import pytest
 from rich.style import Style
+from rich.console import Console
 
 from rich_theme_manager import Theme, ThemeManager
 from rich_theme_manager.manager import SAMPLE_TEXT
@@ -451,3 +453,15 @@ def test_theme_eq():
     assert theme1 != theme3
 
     assert theme1 != "foo"
+
+
+def test_rich_console():
+    """Test Theme().__rich_console__"""
+    theme = Theme(
+        name="test", description="Test theme", styles={"test": Style(color="red")}
+    )
+
+    strio = StringIO()
+    console = Console(file=strio)
+    console.print(theme)
+    assert "Theme: test" in strio.getvalue()
