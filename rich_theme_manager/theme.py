@@ -8,6 +8,7 @@ from typing import IO, Dict, List, Mapping, Optional
 import rich.theme
 from rich.color import Color
 from rich.console import Console, ConsoleOptions, RenderResult
+from rich.panel import Panel
 from rich.style import Style, StyleType
 from rich.table import Table, box
 from rich.text import Text
@@ -175,14 +176,12 @@ class Theme(rich.theme.Theme):
 
         yield table
 
-        legend = Table(
-            title="Attributes Legend",
-            title_justify="left",
+        legend_table = Table(
             show_header=False,
             show_lines=False,
-            box=box.SQUARE,
+            box=None,
         )
-        legend.add_row(
+        legend_table.add_row(
             (
                 f"{_bold('b')}: bold, "
                 f"{_bold('d')}: dim, "
@@ -193,7 +192,7 @@ class Theme(rich.theme.Theme):
                 f"{_bold('2')}: blink2"
             )
         )
-        legend.add_row(
+        legend_table.add_row(
             (
                 f"{_bold('r')}: reverse, "
                 f"{_bold('c')}: conceal, "
@@ -205,18 +204,22 @@ class Theme(rich.theme.Theme):
             )
         )
 
-        yield legend
+        yield Panel(
+            legend_table,
+            box=box.SQUARE,
+            title="attributes legend",
+            title_align="left",
+            expand=False,
+        )
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Theme):
-            return NotImplemented
         return (
             self.name == other.name
             and self.description == other.description
             and self.styles == other.styles
             and self.inherit == other.inherit
             and self.tags == other.tags
-        )
+        ) if isinstance(other, Theme) else NotImplemented
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
