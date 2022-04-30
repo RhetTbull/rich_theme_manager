@@ -3,7 +3,7 @@
 import configparser
 from io import StringIO
 from os.path import exists
-from typing import IO, Dict, List, Mapping, Optional
+from typing import IO, Dict, List, Mapping, Optional, Any
 
 import rich.theme
 from rich.color import Color
@@ -123,6 +123,23 @@ class Theme(rich.theme.Theme):
         self._rtm_tags = new_theme.tags.copy()
         self._rtm_path = new_theme.path
 
+    def update(self, other: "Theme", overwrite_existing_styles: bool = True) -> None:
+        """Update self with data from another theme; updates only the styles, tags, and description.
+
+        Args:
+            other (Theme): Theme to update from
+            overwrite_existing_styles (bool): Whether or not to overwrite styles that already exist in self
+
+        Returns:
+            None
+        """
+        for style in other._rtm_styles:
+            if overwrite_existing_styles or style not in self._rtm_styles:
+                self.styles[style] = other.styles[style]
+        self._rtm_tags = list_union(self._rtm_tags, other._rtm_tags)
+        self._rtm_styles = list(self.styles.keys() if self.styles else [])
+        self._rtm_description = other._rtm_description
+
     def _preview(
         self, sample_text: Optional[str] = None, show_path: bool = True
     ) -> RenderResult:
@@ -214,17 +231,45 @@ class Theme(rich.theme.Theme):
 
     def __eq__(self, other: object) -> bool:
         return (
-            self.name == other.name
-            and self.description == other.description
-            and self.styles == other.styles
-            and self.inherit == other.inherit
-            and self.tags == other.tags
-        ) if isinstance(other, Theme) else NotImplemented
+            (
+                self.name == other.name
+                and self.description == other.description
+                and self.styles == other.styles
+                and self.inherit == other.inherit
+                and self.tags == other.tags
+            )
+            if isinstance(other, Theme)
+            else NotImplemented
+        )
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
         yield from self._preview()
+
+    def __or__(self, other: object) -> "Theme":
+        """Combine two themes into a new theme via union; updates only the styles, tags, and description."""
+        if not isinstance(other, Theme):
+            return NotImplemented
+        new_styles = {style: self.styles[style] for style in self._rtm_styles}
+        for style in other._rtm_styles:
+            new_styles[style] = other.styles[style]
+        new_tags = list_union(self.tags, other.tags)
+        return Theme(
+            name=self.name,
+            description=other.description,
+            styles=new_styles,
+            inherit=self.inherit,
+            tags=new_tags,
+            path=self.path,
+        )
+
+    def __ior__(self, other: object) -> "Theme":
+        """Combine two themes into a new theme via union; updates only the styles and tags, not other theme data."""
+        if not isinstance(other, Theme):
+            return NotImplemented
+        self.update(other)
+        return self
 
     @classmethod
     def from_file(
@@ -297,3 +342,8 @@ def color_bar(length: int, color: Color) -> str:
     """Create a color bar."""
     bar = "█" * length
     return Text(bar, style=Style(color=color))
+
+
+def list_union(a: List[Any], b: List[Any]) -> List[Any]:
+    """Return union of two lists maintaining order of the first list."""
+    return a + [x for x in b if x not in a]

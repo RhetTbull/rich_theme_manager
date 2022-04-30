@@ -167,6 +167,7 @@ Methods
 * `Theme().save()`: Save the theme to disk (to `Theme().path`)
 * `Theme().load()`: Load the theme from disk (from `Theme().path`)
 * `Theme().to_file(path: str)`: Save the theme to disk (to `path`)
+* `Theme().update(other: Theme, overwrite_existing_styles: bool = True)`: Update the theme with the values from another theme, optionally overwriting existing styles.
 
 Class Methods:
 
@@ -233,6 +234,8 @@ The `Theme` preview will use default sample text for each style. You can change 
     ThemeManager(
         theme_dir: Optional[str] = None,
         themes: Optional[List[Theme]] = None,
+        overwrite: bool = False,
+        update: bool = False,
     )
 ```
 
@@ -240,8 +243,10 @@ Arguments:
 
 * `theme_dir`: Optional directory to save/load themes to/from.
 * `themes`: Optional list of Theme objects
+* `overwrite`: overwrite existing theme files
+* `update`: update existing theme files with *new* styles from themes but don't replace *existing* styles
 
-If provided, `theme_dir` must exist.  If `theme_dir` is set (for example, using [click.get_app_dir](https://click.palletsprojects.com/en/8.0.x/api/?highlight=get_app_dir#click.get_app_dir)), upon initialization `ThemeManager` will save any default themes provided via `themes` to `theme_dir` and load any themes from `theme_dir`.  Theme files are standard INI files as created by [configparser](https://docs.python.org/3/library/configparser.html) and are named `<name>.theme` where `<name>` is the name of the Theme (see `Theme.name`).  If a theme file already exists, it will be loaded and `ThemeManager` will not overwrite it.
+If provided, `theme_dir` must exist.  If `theme_dir` is set (for example, using [click.get_app_dir](https://click.palletsprojects.com/en/8.0.x/api/?highlight=get_app_dir#click.get_app_dir)), upon initialization `ThemeManager` will save any default themes provided via `themes` to `theme_dir` and load any themes from `theme_dir`.  Theme files are standard INI files as created by [configparser](https://docs.python.org/3/library/configparser.html) and are named `<name>.theme` where `<name>` is the name of the Theme (see `Theme.name`).  If a theme file already exists, it will be loaded and `ThemeManager` will not overwrite it unless `overwrite=True`.  If `update=True`, any new styles defined in `themes` will be added to the theme file but existing styles will not be replaced. If tags and description of themes are different and `update=True`, those items will also be updated in the theme file.  This allows you to add new styles to an existing theme in future app updates without overriding changes made by the user to theme styles.
 
 Properties:
 
@@ -270,16 +275,14 @@ Class Methods:
 100% coverage of all code with exception of the example CLI app.
 
 ```text
-Name                               Stmts   Miss  Cover
-------------------------------------------------------
-rich_theme_manager/__init__.py         5      0   100%
-rich_theme_manager/manager.py         71      0   100%
-rich_theme_manager/theme.py          134      0   100%
-tests/__init__.py                      0      0   100%
-tests/conftest.py                      7      0   100%
-tests/test_rich_theme_manager.py     256      0   100%
-------------------------------------------------------
-TOTAL                                473      0   100%
+---------- coverage: platform darwin, python 3.8.12-final-0 ----------
+Name                             Stmts   Miss  Cover
+----------------------------------------------------
+rich_theme_manager/__init__.py       5      0   100%
+rich_theme_manager/manager.py       73      0   100%
+rich_theme_manager/theme.py        155      0   100%
+----------------------------------------------------
+TOTAL                              233      0   100%
 ```
 
 ## License

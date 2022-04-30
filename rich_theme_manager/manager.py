@@ -19,12 +19,16 @@ class ThemeManager:
         self,
         theme_dir: Optional[str] = None,
         themes: Optional[List[Theme]] = None,
+        overwrite: bool = False,
+        update: bool = False,
     ):
         """Create ThemeManager instance
 
         Args:
             theme_dir (Optional[str]): directory containing themes
             themes (Optional[List[Theme]]): list of rich_theme_manager.Theme objects
+            overwrite (bool): overwrite existing theme files
+            update (bool): update existing theme files with new styles from themes but don't replace existing styles
         """
         self._theme_dir: Optional[pathlib.Path] = (
             pathlib.Path(theme_dir) if theme_dir else None
@@ -36,8 +40,17 @@ class ThemeManager:
         if self._theme_dir is not None:
             for theme in self.themes:
                 theme.path = str(self._theme_dir / f"{theme.name}.theme")
-            self.load_themes()
-            self.write_themes()
+
+            # if overwrite, need to write themes first to overwrite existing themes
+            # then load themes because there may be theme files not in self._themes
+            # if not overwrite, themes will be loaded from self._theme_dir then written in case
+            # there are themes in self._themes that are not in self._theme_dir
+            if overwrite:
+                self.write_themes(overwrite=overwrite)
+                self.load_themes(update=update)
+            else:
+                self.load_themes(update=update)
+                self.write_themes()
 
     @property
     def themes(self) -> List[Theme]:
@@ -65,20 +78,20 @@ class ThemeManager:
                 return theme
         raise ValueError(f"Theme {theme_name} not found")
 
-    def load_themes(self, theme_dir: Optional[str] = None) -> None:
+    def load_themes(
+        self, theme_dir: Optional[str] = None, update: bool = False
+    ) -> None:
         """Load themes"""
-        if theme_dir:
-            # load themes from user specified theme directory instead of self._theme_dir
-            _theme_dir = pathlib.Path(theme_dir)
-            for path in _theme_dir.glob("*.theme"):
-                theme = Theme.read(str(path))
-                self._themes[theme.name] = theme
-        elif self._theme_dir:
-            for path in self._theme_dir.glob("*.theme"):
-                theme = Theme.read(str(path))
-                self._themes[theme.name] = theme
-        else:
-            raise ValueError("No theme directory specified")
+        theme_dir = theme_dir or self._theme_dir
+        if theme_dir is None:
+            raise ValueError("No theme directory")
+
+        theme_dir = pathlib.Path(theme_dir)
+        for path in theme_dir.glob("*.theme"):
+            theme = Theme.read(str(path))
+            if update and theme.name in self._themes:
+                theme.update(self._themes[theme.name], overwrite_existing_styles=False)
+            self._themes[theme.name] = theme
 
     def write_themes(self, overwrite: bool = False) -> None:
         """Write themes"""
@@ -110,11 +123,7 @@ class ThemeManager:
         for theme in self.themes:
             if theme_names and theme.name not in theme_names:
                 continue
-            row = [
-                theme.name,
-                theme.description,
-                str(", ".join(theme.tags)),
-            ]
+            row = [theme.name, theme.description, ", ".join(theme.tags)]
             if show_path:
                 row.append(theme.path or "")
             table.add_row(*row)

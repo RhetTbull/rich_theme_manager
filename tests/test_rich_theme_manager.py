@@ -7,8 +7,9 @@ from io import StringIO
 from textwrap import dedent
 
 import pytest
-from rich.style import Style
 from rich.console import Console
+from rich.style import Style
+from rich.theme import Theme as RichTheme
 
 from rich_theme_manager import Theme, ThemeManager
 from rich_theme_manager.manager import SAMPLE_TEXT
@@ -504,3 +505,268 @@ def test_rich_console():
     console = Console(file=strio)
     console.print(theme)
     assert "Theme: test" in strio.getvalue()
+
+
+def test_theme_manager_overwrite(themes):
+    """Test that ThemeManager overwrites themes with overwrite=True"""
+
+    themes = themes.copy()
+    theme_dir = tempfile.TemporaryDirectory()
+    tm = ThemeManager(theme_dir=theme_dir.name, themes=themes)
+    for theme in tm.themes:
+        assert os.path.exists(theme.path)
+
+    # change file and verify it gets overwritten when overwrite=True
+    new_themes = [
+        Theme(
+            name="dark",
+            description="Dark mode theme",
+            tags=["dark"],
+            styles={
+                "hidden": Style(color="rgb(50,50,50)", bold=True),
+            },
+        ),
+    ]
+
+    tm2 = ThemeManager(theme_dir=theme_dir.name, themes=new_themes, overwrite=True)
+    dark2 = tm2.get("dark")
+    assert dark2.name == "dark"
+    assert dark2.styles["hidden"] == new_themes[0].styles["hidden"]
+
+
+def test_theme_manager_update(themes):
+    """Test that ThemeManager updates themes with update=True and does not with update=False"""
+
+    theme_dir = tempfile.TemporaryDirectory()
+    tm = ThemeManager(theme_dir=theme_dir.name, themes=themes)
+    for theme in tm.themes:
+        assert os.path.exists(theme.path)
+
+    # change file and verify it gets overwritten when overwrite=True
+    new_themes = [
+        Theme(
+            name="dark",
+            description="Dark mode theme 2",
+            tags=["dark", "new"],
+            styles={
+                "hidden": Style(color="rgb(50,50,50)", bold=True),
+                "new_style": Style(color="rgb(42,42,42)", dim=True),
+            },
+        ),
+    ]
+
+    # verify update works
+    tm2 = ThemeManager(theme_dir=theme_dir.name, themes=new_themes, update=True)
+    dark2 = tm2.get("dark")
+    assert dark2.name == "dark"
+    assert dark2.tags == ["dark", "new"]
+    assert dark2.description == "Dark mode theme 2"
+    assert dark2.styles["hidden"] == themes[0].styles["hidden"]
+    assert dark2.styles["new_style"] == new_themes[0].styles["new_style"]
+
+
+def test_theme_union_operators():
+    """Test union of Theme objects"""
+    theme1 = Theme(
+        name="dark",
+        description="Dark mode theme",
+        tags=["dark"],
+        styles={
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(color="rgb(255,85,85)", bold=True),
+            "style3": Style(color="rgb(241,250,140)", bold=True),
+        },
+    )
+
+    theme2 = Theme(
+        name="dark",
+        description="Dark mode theme 2",
+        tags=["dark", "new"],
+        styles={
+            "new_style": Style(color="rgb(42,42,42)", dim=True),  # this is new
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(
+                color="rgb(1,1,1)", bold=True
+            ),  # this is changed, also #style3 is missing
+        },
+    )
+
+    theme3 = theme1 | theme2
+    assert theme3.name == "dark"
+    assert theme3.description == "Dark mode theme 2"
+    assert theme3.tags == ["dark", "new"]
+    assert theme3.styles["style1"] == theme1.styles["style1"]  # no change
+    assert theme3.styles["style2"] == theme2.styles["style2"]  # changed
+    assert theme3.styles["style3"] == theme1.styles["style3"]  # missing in theme2
+    assert theme3.styles["new_style"] == theme2.styles["new_style"]  # new
+
+    theme4 = theme2 | theme1
+    assert theme4.name == "dark"
+    assert theme4.description == "Dark mode theme"
+    assert theme4.tags == ["dark", "new"]
+    assert theme4.styles["style1"] == theme2.styles["style1"]  # no change
+    assert theme4.styles["style2"] == theme1.styles["style2"]  # changed
+    assert theme4.styles["style3"] == theme1.styles["style3"]  # missing in theme2
+    assert theme4.styles["new_style"] == theme2.styles["new_style"]  # new
+
+    theme5 = theme1 | theme1
+    assert theme5.name == "dark"
+    assert theme5.description == "Dark mode theme"
+    assert theme5.tags == ["dark"]
+    assert theme5.styles == theme1.styles
+
+    theme1 |= theme2
+    assert theme1.name == "dark"
+    assert theme1.description == "Dark mode theme 2"
+    assert theme1.tags == ["dark", "new"]
+    assert theme1.styles["style1"] == theme1.styles["style1"]  # no change
+    assert theme1.styles["style2"] == theme2.styles["style2"]  # changed
+    assert theme1.styles["style3"] == theme1.styles["style3"]  # missing in theme2
+    assert theme1.styles["new_style"] == theme2.styles["new_style"]  # new
+
+
+def test_theme_union_operators_not_implemented():
+    """Test union of Theme objects with non Theme objects"""
+    theme1 = Theme(
+        name="dark",
+        description="Dark mode theme",
+        tags=["dark"],
+        styles={
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(color="rgb(255,85,85)", bold=True),
+            "style3": Style(color="rgb(241,250,140)", bold=True),
+        },
+    )
+
+    theme2 = RichTheme(
+        styles={
+            "new_style": Style(color="rgb(42,42,42)", dim=True),  # this is new
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(
+                color="rgb(1,1,1)", bold=True
+            ),  # this is changed, also #style3 is missing
+        },
+    )
+
+    with pytest.raises(TypeError):
+        theme1 | theme2
+
+    with pytest.raises(TypeError):
+        theme2 | theme1
+
+    with pytest.raises(TypeError):
+        theme1 |= theme2
+
+    with pytest.raises(TypeError):
+        theme2 |= theme1
+
+
+def test_theme_update():
+    """Test union of Theme objects via Theme.update()"""
+    theme1 = Theme(
+        name="dark",
+        description="Dark mode theme",
+        tags=["dark"],
+        styles={
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(color="rgb(255,85,85)", bold=True),
+            "style3": Style(color="rgb(241,250,140)", bold=True),
+        },
+    )
+
+    theme2 = Theme(
+        name="dark",
+        description="Dark mode theme 2",
+        tags=["dark", "new"],
+        styles={
+            "new_style": Style(color="rgb(42,42,42)", dim=True),  # this is new
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(
+                color="rgb(1,1,1)", bold=True
+            ),  # this is changed, also #style3 is missing
+        },
+    )
+
+    theme1.update(theme2)
+
+    assert theme1.name == "dark"
+    assert theme1.description == "Dark mode theme 2"
+    assert theme1.tags == ["dark", "new"]
+    assert theme1.styles["style1"] == theme1.styles["style1"]  # no change
+    assert theme1.styles["style2"] == theme2.styles["style2"]  # changed
+    assert theme1.styles["style3"] == theme1.styles["style3"]  # missing in theme2
+    assert theme1.styles["new_style"] == theme2.styles["new_style"]  # new
+
+
+def test_theme_update():
+    """Test union of Theme objects via Theme.update()"""
+    theme1 = Theme(
+        name="dark",
+        description="Dark mode theme",
+        tags=["dark"],
+        styles={
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(color="rgb(255,85,85)", bold=True),
+            "style3": Style(color="rgb(241,250,140)", bold=True),
+        },
+    )
+
+    theme2 = Theme(
+        name="dark",
+        description="Dark mode theme 2",
+        tags=["dark", "new"],
+        styles={
+            "new_style": Style(color="rgb(42,42,42)", dim=True),  # this is new
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(
+                color="rgb(1,1,1)", bold=True
+            ),  # this is changed, also #style3 is missing
+        },
+    )
+
+    theme1.update(theme2)
+
+    assert theme1.name == "dark"
+    assert theme1.description == "Dark mode theme 2"
+    assert theme1.tags == ["dark", "new"]
+    assert theme1.styles["style1"] == theme1.styles["style1"]  # no change
+    assert theme1.styles["style2"] == theme2.styles["style2"]  # changed
+    assert theme1.styles["style3"] == theme1.styles["style3"]  # missing in theme2
+    assert theme1.styles["new_style"] == theme2.styles["new_style"]  # new
+
+
+def test_theme_update_no_overwrite_existing_styles():
+    """Test union of Theme objects via Theme.update() with overwite_existing_styles=False"""
+    theme1 = Theme(
+        name="dark",
+        description="Dark mode theme",
+        tags=["dark"],
+        styles={
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(color="rgb(255,85,85)", bold=True),
+            "style3": Style(color="rgb(241,250,140)", bold=True),
+        },
+    )
+
+    theme2 = Theme(
+        name="dark",
+        description="Dark mode theme 2",
+        tags=["dark", "new"],
+        styles={
+            "new_style": Style(color="rgb(42,42,42)", dim=True),  # this is new
+            "style1": Style(color="#383b3d", dim=True),
+            "style2": Style(
+                color="rgb(1,1,1)", bold=True
+            ),  # this is changed, also #style3 is missing
+        },
+    )
+
+    theme1.update(theme2, overwrite_existing_styles=False)
+
+    assert theme1.name == "dark"
+    assert theme1.description == "Dark mode theme 2"
+    assert theme1.tags == ["dark", "new"]
+    assert theme1.styles["style1"] == theme1.styles["style1"]  # no change
+    assert theme1.styles["style2"] == theme1.styles["style2"]  # changed
+    assert theme1.styles["style3"] == theme1.styles["style3"]  # missing in theme2
+    assert theme1.styles["new_style"] == theme2.styles["new_style"]  # new
