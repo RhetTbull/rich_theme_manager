@@ -137,7 +137,7 @@ class Theme(rich.theme.Theme):
             if overwrite_existing_styles or style not in self._rtm_styles:
                 self.styles[style] = other.styles[style]
         self._rtm_tags = list_union(self._rtm_tags, other._rtm_tags)
-        self._rtm_styles = list(self.styles.keys() if self.styles else [])
+        self._rtm_styles = list_union(self._rtm_styles, other._rtm_styles)
         self._rtm_description = other._rtm_description
 
     def _preview(
