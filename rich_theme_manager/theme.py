@@ -293,6 +293,7 @@ class Theme(rich.theme.Theme):
         tags: List[str] = (
             metadata.get("tags", "").split(",") if metadata.get("tags") else []
         )
+        tags = [tag.strip() for tag in tags]
         return Theme(
             name=metadata["name"],
             description=metadata.get("description") or "",

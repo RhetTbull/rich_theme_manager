@@ -50,7 +50,7 @@ class ThemeManager:
                 self.load_themes(update=update)
             else:
                 self.load_themes(update=update)
-                self.write_themes()
+                self.write_themes(overwrite=update)
 
     @property
     def themes(self) -> List[Theme]:

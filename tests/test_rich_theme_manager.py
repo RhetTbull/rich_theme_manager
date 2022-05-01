@@ -542,7 +542,7 @@ def test_theme_manager_update(themes):
     for theme in tm.themes:
         assert os.path.exists(theme.path)
 
-    # change file and verify it gets overwritten when overwrite=True
+    # change file and verify it gets overwritten when update=True
     new_themes = [
         Theme(
             name="dark",
@@ -557,12 +557,15 @@ def test_theme_manager_update(themes):
 
     # verify update works
     tm2 = ThemeManager(theme_dir=theme_dir.name, themes=new_themes, update=True)
-    dark2 = tm2.get("dark")
-    assert dark2.name == "dark"
-    assert dark2.tags == ["dark", "new"]
-    assert dark2.description == "Dark mode theme 2"
-    assert dark2.styles["hidden"] == themes[0].styles["hidden"]
-    assert dark2.styles["new_style"] == new_themes[0].styles["new_style"]
+
+    # pass in old themes and verify the ThemeManager read the updates
+    tm3 = ThemeManager(theme_dir=theme_dir.name, themes=themes)
+    dark3 = tm3.get("dark")
+    assert dark3.name == "dark"
+    assert dark3.tags == ["dark", "new"]
+    assert dark3.description == "Dark mode theme 2"
+    assert dark3.styles["hidden"] == themes[0].styles["hidden"]
+    assert dark3.styles["new_style"] == new_themes[0].styles["new_style"]
 
 
 def test_theme_union_operators():
